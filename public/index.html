@@ -39,5 +39,18 @@
       To begin the development, run `npm start` or `yarn start`.
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.8.0/jszip.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.8.0/xlsx.js"></script>
+    <script>
+    </script>
+
+    <form enctype="multipart/form-data">
+      <input id="upload" type=file name="files[]">
+    </form>
+
+    <script>
+      document.getElementById('upload').addEventListener('change', handleFileSelect, false);
+    </script>
   </body>
 </html>
