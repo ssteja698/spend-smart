@@ -4,6 +4,7 @@ import { tailStrings } from "../constants/landingPage";
 var XLSX = require("xlsx");
 
 const LandingPage = () => {
+  const [transactionsInSheet, setTransactionsInSheet] = useState([]);
   const [transactions, setTransactions] = useState({});
   const [selectedItem, setSelectedItem] = useState(-1);
 
@@ -32,6 +33,10 @@ const LandingPage = () => {
           })[0];
 
           const result = {};
+
+          if (transactionsInSheet.length === 0) {
+            setTransactionsInSheet(sheetData);
+          }
 
           sheetData.forEach((transactionDetails) => {
             let key = transactionDetails.Narration;
@@ -192,11 +197,21 @@ const LandingPage = () => {
           )}
         </div>
         <div className="d-flex flex-column text-start mb-5">
-          {Object.entries(overallDetails).map(([detailKey, detail]) => (
-            <h6 key={detailKey}>
-              {detailKey}: {detail}
+          <>
+            {Object.entries(overallDetails).map(([detailKey, detail]) => (
+              <h6 key={detailKey}>
+                {detailKey}: {detail}
+              </h6>
+            ))}
+            <h6>
+              Closing Balance:{" "}
+              {transactionsInSheet[transactionsInSheet.length - 1]
+                ? transactionsInSheet[transactionsInSheet.length - 1][
+                    "Closing Balance"
+                  ]
+                : ""}
             </h6>
-          ))}
+          </>
         </div>
       </RenderIf>
     </div>
