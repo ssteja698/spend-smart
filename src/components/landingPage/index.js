@@ -132,7 +132,7 @@ const LandingPage = () => {
                     data-bs-parent="#accordionContainer"
                   >
                     <div className="accordion-body table-responsive text-nowrap">
-                      <table className="table table-light table-striped table-hover">
+                      <table className="table table-dark table-striped table-hover">
                         <thead>
                           <tr>
                             {Object.keys(transactionDetail.headers).map(
