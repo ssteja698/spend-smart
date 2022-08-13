@@ -7,6 +7,11 @@ const LandingPage = () => {
   const [transactions, setTransactions] = useState({});
   const [selectedItem, setSelectedItem] = useState(-1);
 
+  const overallDetails = {
+    "Withdrawal Amt.": 0,
+    "Deposit Amt.": 0,
+  };
+
   var ExcelToJSON = function () {
     this.parseExcel = function (file) {
       if (file) {
@@ -87,7 +92,7 @@ const LandingPage = () => {
       </div>
       <RenderIf condition={Object.keys(transactions).length}>
         <h3 className="mb-2">Transaction Details</h3>
-        <div className="accordion mb-5" id="accordionContainer">
+        <div className="accordion mb-3" id="accordionContainer">
           {Object.entries(transactions).map(
             ([transactionTo, transactionDetail], index) => {
               const finalDetails = {
@@ -152,6 +157,8 @@ const LandingPage = () => {
                                       } else {
                                         finalDetails[header] +=
                                           transactionData[header] || 0;
+                                        overallDetails[header] +=
+                                          transactionData[header] || 0;
                                       }
                                     }
                                     return (
@@ -171,7 +178,7 @@ const LandingPage = () => {
                       <div className="d-flex flex-column text-start">
                         {Object.entries(finalDetails).map(
                           ([detailKey, detail]) => (
-                            <h6>
+                            <h6 key={detailKey}>
                               {detailKey}: {detail}
                             </h6>
                           )
@@ -183,6 +190,13 @@ const LandingPage = () => {
               );
             }
           )}
+        </div>
+        <div className="d-flex flex-column text-start mb-5">
+          {Object.entries(overallDetails).map(([detailKey, detail]) => (
+            <h6 key={detailKey}>
+              {detailKey}: {detail}
+            </h6>
+          ))}
         </div>
       </RenderIf>
     </div>
