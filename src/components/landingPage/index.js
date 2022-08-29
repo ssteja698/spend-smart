@@ -1,10 +1,16 @@
-import React, { useState } from "react";
+import html2canvas from "html2canvas";
+import React, { useEffect, useState } from "react";
 import RenderIf from "../common/RenderIf";
 import { tailStrings } from "../constants/landingPage";
+import { ExcelDateToJSDate } from "../utils/helpers";
+import "./styles.css";
+
 var XLSX = require("xlsx");
 
 const LandingPage = () => {
   const [transactionsInSheet, setTransactionsInSheet] = useState([]);
+  const [selectedIdToTakeScreenshot, setSelectedIdToTakeScreenshot] =
+    useState(null);
   const [transactions, setTransactions] = useState({});
   const [selectedItem, setSelectedItem] = useState(-1);
 
@@ -13,7 +19,26 @@ const LandingPage = () => {
     "Deposit Amt.": 0,
   };
 
-  var ExcelToJSON = function () {
+  useEffect(() => {
+    if (selectedIdToTakeScreenshot) {
+      html2canvas(document.getElementById(selectedIdToTakeScreenshot)).then(
+        (canvas) => {
+          document
+            .getElementById(`${selectedIdToTakeScreenshot}--screenshot`)
+            .appendChild(canvas);
+
+          let link = document.createElement("a");
+          link.download = `${selectedIdToTakeScreenshot}.png`;
+          link.href = document
+            .getElementById(`${selectedIdToTakeScreenshot}--screenshot`)
+            .childNodes[0].toDataURL();
+          link.click();
+        }
+      );
+    }
+  }, [selectedIdToTakeScreenshot]);
+
+  const ExcelToJSON = function () {
     this.parseExcel = function (file) {
       if (file) {
         var reader = new FileReader();
@@ -103,7 +128,7 @@ const LandingPage = () => {
               const finalDetails = {
                 "Withdrawal Amt.": 0,
                 "Deposit Amt.": 0,
-                "Closing Balance": 0,
+                // "Closing Balance": 0,
               };
               return (
                 <div
@@ -136,45 +161,56 @@ const LandingPage = () => {
                     aria-labelledby={`heading-${transactionTo}`}
                     data-bs-parent="#accordionContainer"
                   >
-                    <div className="accordion-body table-responsive text-nowrap">
+                    <div
+                      id={transactionTo}
+                      className="accordion-body text-nowrap container"
+                    >
                       <table className="table table-dark table-striped table-hover">
                         <thead>
                           <tr>
-                            {Object.keys(transactionDetail.headers).map(
-                              (header) => (
+                            {Object.keys(transactionDetail.headers)
+                              .filter((header) => header !== "Closing Balance")
+                              .map((header) => (
                                 <th scope="col" key={header}>
                                   {header}
                                 </th>
-                              )
-                            )}
+                              ))}
                           </tr>
                         </thead>
                         <tbody>
                           {transactionDetail.data.map((transactionData) => {
+                            const rowKey = `${transactionData.Date}--${transactionData.Narration}--${transactionData["Chq./Ref.No."]}--${transactionData["Withdrawal Amt."]}--${transactionData["Closing Balance"]}`;
                             return (
-                              <tr key={transactionData["Chq./Ref.No."]}>
-                                {Object.keys(transactionDetail.headers).map(
-                                  (header) => {
+                              <tr key={rowKey}>
+                                {Object.keys(transactionDetail.headers)
+                                  .filter(
+                                    (header) => header !== "Closing Balance"
+                                  )
+                                  .map((header) => {
                                     if (header in finalDetails) {
                                       if (header === "Closing Balance") {
-                                        finalDetails[header] =
-                                          transactionData[header];
+                                        // finalDetails[header] =
+                                        //   transactionData[header];
                                       } else {
                                         finalDetails[header] +=
-                                          transactionData[header] || 0;
+                                          Number(transactionData[header]) || 0;
                                         overallDetails[header] +=
-                                          transactionData[header] || 0;
+                                          Number(transactionData[header]) || 0;
+                                        finalDetails["Settlement to be done"] =
+                                          finalDetails["Withdrawal Amt."] -
+                                          finalDetails["Deposit Amt."];
                                       }
                                     }
                                     return (
-                                      <td
-                                        key={`${transactionData["Chq./Ref.No."]}-${header}`}
-                                      >
-                                        {transactionData[header] || "-"}
+                                      <td key={`${rowKey}--${header}`}>
+                                        {header === "Date"
+                                          ? ExcelDateToJSDate(
+                                              transactionData[header]
+                                            )
+                                          : transactionData[header] || "-"}
                                       </td>
                                     );
-                                  }
-                                )}
+                                  })}
                               </tr>
                             );
                           })}
@@ -184,11 +220,27 @@ const LandingPage = () => {
                         {Object.entries(finalDetails).map(
                           ([detailKey, detail]) => (
                             <h6 key={detailKey}>
-                              {detailKey}: {detail}
+                              {detailKey}:{" "}
+                              <strong>
+                                Rs. {detail.toLocaleString("en-IN")} /-
+                              </strong>
                             </h6>
                           )
                         )}
                       </div>
+                    </div>
+                    <div className="d-flex px-3 pb-3">
+                      <button
+                        className="btn btn-primary"
+                        onClick={() =>
+                          setSelectedIdToTakeScreenshot(transactionTo)
+                        }
+                      >
+                        Take Screenshot
+                      </button>
+                    </div>
+                    <div className="screenshot-container border border-3 border-info">
+                      <div id={`${transactionTo}--screenshot`}></div>
                     </div>
                   </div>
                 </div>

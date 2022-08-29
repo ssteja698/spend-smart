@@ -1,0 +1,7 @@
+.container {
+  width: fit-content;
+}
+
+.screenshot-container {
+  overflow: auto;
+}
