@@ -128,7 +128,6 @@ const LandingPage = () => {
               const finalDetails = {
                 "Withdrawal Amt.": 0,
                 "Deposit Amt.": 0,
-                // "Closing Balance": 0,
               };
               return (
                 <div
@@ -163,7 +162,7 @@ const LandingPage = () => {
                   >
                     <div
                       id={transactionTo}
-                      className="accordion-body text-nowrap container"
+                      className="accordion-body container"
                     >
                       <table className="table table-dark table-striped table-hover">
                         <thead>
@@ -188,10 +187,7 @@ const LandingPage = () => {
                                   )
                                   .map((header) => {
                                     if (header in finalDetails) {
-                                      if (header === "Closing Balance") {
-                                        // finalDetails[header] =
-                                        //   transactionData[header];
-                                      } else {
+                                      if (header !== "Closing Balance") {
                                         finalDetails[header] +=
                                           Number(transactionData[header]) || 0;
                                         overallDetails[header] +=
