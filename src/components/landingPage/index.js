@@ -1,5 +1,5 @@
 import html2canvas from "html2canvas";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import RenderIf from "../common/RenderIf";
 import { tailStrings } from "../constants/landingPage";
 import { ExcelDateToJSDate } from "../utils/helpers";
@@ -17,6 +17,13 @@ const LandingPage = () => {
   const overallDetails = {
     "Withdrawal Amt.": 0,
     "Deposit Amt.": 0,
+  };
+
+  var analysis = {
+    Above10K: [],
+    Between5Kand10K: [],
+    Between1Kand5K: [],
+    Rest: [],
   };
 
   useEffect(() => {
@@ -106,6 +113,12 @@ const LandingPage = () => {
     xl2json.parseExcel(files[0]);
   }
 
+  function formatArrayForDisplay(arr) {
+    const res = "";
+    arr.forEach((a, i) => (i === 0 ? (res += a) : (res += ", " + a)));
+    return res;
+  }
+
   return (
     <div className="d-flex flex-column justify-content-center w-50 m-auto text-center">
       <h2 className="mt-4 text-decoration-underline">Spend Smart</h2>
@@ -122,6 +135,19 @@ const LandingPage = () => {
       </div>
       <RenderIf condition={Object.keys(transactions).length}>
         <h3 className="mb-2">Transaction Details</h3>
+        <div className="mb-2">
+          <div>Analysis:</div>
+          <div className="mt-1">
+            Above 10k: {formatArrayForDisplay(analysis.Above10K)}
+          </div>
+          <div className="mt-1">
+            Between 5K and 10K: {JSON.stringify(analysis.Between5Kand10K)}
+          </div>
+          <div className="mt-1">
+            Between 1K and 5K: {JSON.stringify(analysis.Between1Kand5K)}
+          </div>
+          <div className="mt-1">Rest: {JSON.stringify(analysis.Rest)}</div>
+        </div>
         <div className="accordion mb-3" id="accordionContainer">
           {Object.entries(transactions).map(
             ([transactionTo, transactionDetail], index) => {
@@ -129,6 +155,47 @@ const LandingPage = () => {
                 "Withdrawal Amt.": 0,
                 "Deposit Amt.": 0,
               };
+              const transactionDetailDataLength = transactionDetail.data.length;
+              const currTransactionTotalDue = transactionDetail.data.reduce(
+                (total, curr) =>
+                  total +
+                  (curr["Withdrawal Amt."] || 0) -
+                  (curr["Deposit Amt."] || 0),
+                0
+              );
+
+              transactionDetail.data.forEach((transactionDetailData) => {
+                if (Math.abs(transactionDetailData) >= 10000) {
+                  analysis["Above10K"].push(transactionDetailData);
+                  console.log(analysis["Above10K"], "*170");
+                } else if (
+                  Math.abs(transactionDetailData) >= 5000 &&
+                  Math.abs(transactionDetailData) < 10000
+                ) {
+                  analysis["Between5Kand10K"].push(transactionDetailData);
+                  console.log(analysis["Between5Kand10K"], "*177");
+                } else if (
+                  Math.abs(transactionDetailData) >= 1000 &&
+                  Math.abs(transactionDetailData) < 5000
+                ) {
+                  analysis["Between1Kand5K"].push(transactionDetailData);
+                  console.log(analysis["Between1Kand5K"], "*182");
+                } else {
+                  analysis["Rest"].push(transactionDetailData);
+                  console.log(analysis["Rest"], "*185");
+                }
+              });
+
+              console.log(
+                transactionDetail.data[transactionDetailDataLength - 1]["Date"],
+                ExcelDateToJSDate(
+                  transactionDetail.data[transactionDetailDataLength - 1][
+                    "Date"
+                  ]
+                ),
+                "*195"
+              );
+
               return (
                 <div
                   className="accordion-item"
@@ -149,7 +216,44 @@ const LandingPage = () => {
                       aria-expanded="true"
                       aria-controls={`collapse-${index + 1}`}
                     >
-                      {transactionTo}
+                      <div
+                        className="d-flex"
+                        style={{ flexDirection: "column" }}
+                      >
+                        <div className="mb-3">
+                          <strong className="me-1">
+                            Rs.{" "}
+                            {currTransactionTotalDue.toLocaleString("en-IN")} /-
+                          </strong>
+                          from{" "}
+                          <strong>
+                            {ExcelDateToJSDate(
+                              transactionDetail.data[0]["Date"]
+                            ) !== "Invalid Date"
+                              ? ExcelDateToJSDate(
+                                  transactionDetail.data[0]["Date"]
+                                )
+                              : transactionDetail.data[0]["Value Dt"]}
+                          </strong>{" "}
+                          to{" "}
+                          <strong>
+                            {ExcelDateToJSDate(
+                              transactionDetail.data[
+                                transactionDetailDataLength - 1
+                              ]["Date"]
+                            ) !== "Invalid Date"
+                              ? ExcelDateToJSDate(
+                                  transactionDetail.data[
+                                    transactionDetailDataLength - 1
+                                  ]["Date"]
+                                )
+                              : transactionDetail.data[
+                                  transactionDetailDataLength - 1
+                                ]["Value Dt"]}
+                          </strong>
+                        </div>
+                        <div>{transactionTo}</div>
+                      </div>
                     </button>
                   </h2>
                   <div
@@ -202,7 +306,11 @@ const LandingPage = () => {
                                         {header === "Date"
                                           ? ExcelDateToJSDate(
                                               transactionData[header]
-                                            )
+                                            ) !== "Invalid Date"
+                                            ? ExcelDateToJSDate(
+                                                transactionData[header]
+                                              )
+                                            : transactionData["Value Dt"]
                                           : transactionData[header] || "-"}
                                       </td>
                                     );
